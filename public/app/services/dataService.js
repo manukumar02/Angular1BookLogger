@@ -1,7 +1,7 @@
 (function(){
-	angular.module('app').factory('dataService', ['$q', '$timeout', 'logger', dataService]);
+	angular.module('app').factory('dataService', ['$q', '$timeout', 'logger','$http','constants', dataService]);
 
-	function dataService($q, $timeout, logger){
+	function dataService($q, $timeout, logger, $http, constants){
 		return {
 			getAllBooks: getAllBooks,
 			getAllReaders: getAllReaders
@@ -9,42 +9,23 @@
 
 		function getAllBooks() {
 			logger.output('Get All Books!');
-			var booksArray = [
-				{
-					book_id: 1,
-					title: 'Harry Porter and the Deathly HAllows',
-					author: 'J.K Rowling',
-					year_published: 2000
-				},
-				{
-					book_id: 2,
-					title: 'The cat in the Hat',
-					author: 'Dr. Seuss',
-					year_published: 1957
-				},
-				{
-					book_id: 3,
-					title: 'Encyclopedia Brown, Boy detective',
-					author: 'Donald J.Sobal',
-					year_published: 1963
+			return $http({
+				method: 'GET',
+				url: 'api/books',
+				headers: {
+					'MS-BookLogger-Version': constants.APP_VERSION
 				}
-			];
-
-			var deferred = $q.defer();
-			$timeout(function(){
-				var successfull = true;
-				if(successfull) {
-					deferred.notify('Just getting started gathering books...');
-					deferred.notify('Almost done gathering books...');
-					deferred.resolve(booksArray);					
-				} else {
-					deferred.reject('Error retrieving books.');
-				}
-			}, 1000);
-
-			return deferred.promise;
-		};
-
+			})
+			.then(sendResponseData)
+			.catch(sendGetBooksError);					
+		}
+		function sendResponseData(response) {
+			return response.data;
+		}
+		function sendGetBooksError(response) {
+			$q.reject('Error retrieving book(s). (HTTP status: ' +response.status +')');
+		}
+ 
 		function getAllReaders() {
 			logger.output('Get All Readers!');
 			var readersArray = [
